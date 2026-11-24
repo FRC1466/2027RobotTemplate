@@ -5,7 +5,7 @@ Java 25 project for SystemCore with WPILib 2027.0.0 Alpha 8, Commands v3, Advant
 ## Build, simulate, and replay
 
 - Open this folder in WPILib VS Code with Java 25 selected. Run `.\gradlew.bat build` on Windows or `./gradlew build` on macOS or Linux.
-- Use `spotlessApply` to format Java. The build checks formatting and runs `validateAutos`, which uses BLine to validate every path in the chooser.
+- Use `spotlessApply` to format Java. The build checks formatting and runs `validateAutos`, which uses BLine to validate every Java-defined and drawn path.
 - Run WPILib's **Simulate Robot Code** and select the GUI extension for interactive teleop. Desktop simulation uses Gradle's `run` task, publishes to NetworkTables, and writes WPILOG files to `logs/`.
 - To replay a log, set `AKIT_LOG_PATH` to the absolute WPILOG path and run `.\gradlew.bat run` or `./gradlew run`. Leave HAL simulation extensions disabled. AdvantageKit writes the replay outputs to a sibling file with the `_sim` suffix. Clear the variable to resume ordinary simulation.
 - The AdvantageScope metadata tab shows the packaged build date, Git commit, branch, and working-tree status. Copies outside a Git checkout report Git details as unknown.
@@ -27,16 +27,34 @@ Release the bumper to stop. Disable, controller loss, a detected sensor or align
 
 Select **Auto Routine** in a WPILib 2027 dashboard with Selectable support before enabling autonomous. The starter uses [BLine 2027 Beta 3](https://docs.bline.run/getting-started/installation/). Do Nothing is the default.
 
-| Routine | Sequence |
-| --- | --- |
-| Do Nothing | Hold the drivetrain idle. |
-| Drive 1 Meter | Reset to the authored start, drive 1 m forward, and stop. |
-| Strafe 1 Meter (Calibration) | Reset to the authored start, strafe 1 m left while holding heading, and stop. |
-| Turn 90 Degrees (Calibration) | Reset to the authored start, rotate 90° counterclockwise in place, and stop. |
+Autos come from two places, and both appear in the same chooser:
 
-Motion examples share a blue-origin practice start of (2 m, 4 m, 0°). BLine transforms the path and its reset pose together for red. Each example stops on completion, disable, or a 5 s timeout. Use the calibration runs to compare measured travel and angle against field marks and review `Auto/FinalPose`, `Auto/Status`, and `FollowPath/*` in AdvantageScope. Odometry reports the estimated pose. Measure actual travel independently when calibrating.
+- **Java routines (the normal way).** Define paths as `public static Path name()` methods in [AutoPaths.java](src/main/java/first/robot/auto/AutoPaths.java) and sequence them in [Autos.java](src/main/java/first/robot/auto/Autos.java). A routine can follow several paths, wait, run mechanism commands, wait for a sensor, and stop with a fault when a step fails:
 
-To add a routine, export a path from [BLine Web](https://web-beta.bline-web.pages.dev/) into [autos/paths](src/main/deploy/autos/paths), then add one row in [AutoRoutines.java](src/main/java/first/robot/AutoRoutines.java) with its display name, filename without `.json`, and timeout in seconds. Keep the authored start as the first waypoint. Shared speed, acceleration, and endpoint tolerances live in [autos/config.json](src/main/deploy/autos/config.json). The starter routines and vision use the 2026 welded practice-field layout. Update the layout, alliance symmetry, and authored starts together for a different field.
+  ```java
+  new AutoRoutine("Two Piece", 15, auto -> {
+    if (!auto.follow(AutoPaths.toFirstPiece())) return;
+    if (!auto.await(intake.collect())) return;
+    auto.follow(AutoPaths.backToScore());
+  })
+  ```
+
+- **Drawn paths (competition-day changes).** Export a path from [BLine Web](https://web-beta.bline-web.pages.dev/) into [autos/paths](src/main/deploy/autos/paths) and deploy. It appears as **Drawn: name** with no code change and a 15 s limit. A Java routine can also use a drawn path with `auto.followDrawn("name")`.
+
+| Routine | Source | Sequence |
+| --- | --- | --- |
+| Do Nothing | Built in | Hold the drivetrain idle. |
+| Drive 1 Meter | Java | Reset to the authored start, drive 1 m forward, and stop. |
+| Strafe 1 Meter (Calibration) | Java | Reset to the authored start, strafe 1 m left while holding heading, and stop. |
+| Turn 90 Degrees (Calibration) | Java | Reset to the authored start, rotate 90° counterclockwise in place, and stop. |
+| Example: Out and Back | Java | Drive 1 m forward, pause 0.5 s, return to the start at 0.5 m/s. |
+| Drawn: drive-1m | Drawn | Same motion as Drive 1 Meter, from `drive-1m.json`. |
+
+Write paths in blue-origin meters. BLine flips the path and its reset pose together for red. The first path a routine follows resets odometry to its authored start, so it must begin with a `Waypoint`. Later paths start from the measured pose. Every path, Java or drawn, uses the shared speed, acceleration, and endpoint tolerances in [autos/config.json](src/main/deploy/autos/config.json) unless it sets its own `PathConstraints`. A routine stops on completion, a failed step, disable, or its timeout. A failed step or timeout raises the **AutonomousFault** alert and reports the reason in `Auto/Status`. Use the calibration runs to compare measured travel and angle against field marks and review `Auto/FinalPose`, `Auto/Status`, `Auto/Segment`, and `FollowPath/*` in AdvantageScope. Odometry reports the estimated pose. Measure actual travel independently when calibrating.
+
+Path events (`EventTrigger` in Java, `event_trigger` in drawn paths) run actions registered in `Autos.registerEvents()`. BLine only logs a warning for an unregistered name. Event commands keep running after their path ends, so give them their own end condition.
+
+`validateAutos` checks every `AutoPaths` method and every drawn file during the build, and it requires each drawn path to start with a waypoint. `AutoRoutinesSimTest` runs every chooser routine against the simulated swerve, including a red-alliance flip. That shows the steps happen in the right order. It does not show how the real robot drives on carpet. The starter routines and vision use the 2026 welded practice-field layout. Update the layout, alliance symmetry, and authored starts together for a different field.
 
 Set `TUNING_MODE` in [Constants.java](src/main/java/first/robot/Constants.java) during tuning. AdvantageScope can edit the three BLine P gains under `/Tuning/BLine`. AdvantageKit records the edits and reports effective gains under `Auto/Tuning`. Use the same tuning-mode setting when replaying a run.
 
