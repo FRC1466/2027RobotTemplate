@@ -1,0 +1,283 @@
+{
+  "schema_version": 1,
+  "name": "frc-codex-toolkit",
+  "version": "0.1.0",
+  "source_repository": "https://github.com/FRC1466/Codex-Toolkit.git",
+  "source_ref": "refs/heads/master",
+  "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+  "source_kind": "github-commit-archive",
+  "installed_at": "2026-11-24T16:40:20Z",
+  "status": "installed",
+  "hash_format": "utf8-lf-sha256",
+  "files": {
+    ".agents/skills/frc-task/SKILL.md": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "c178b0180002fe748b8ad0e0d9469f795caac33684ea0b1b5fc725dc33336969",
+      "installed_sha256": "c178b0180002fe748b8ad0e0d9469f795caac33684ea0b1b5fc725dc33336969",
+      "status": "installed"
+    },
+    ".agents/skills/frc-task/agents/openai.yaml": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "8f4c77e9bac4e52af7d96bae7979ae9cbe029196adc14d8edb67a68700da83ef",
+      "installed_sha256": "8f4c77e9bac4e52af7d96bae7979ae9cbe029196adc14d8edb67a68700da83ef",
+      "status": "installed"
+    },
+    ".agents/skills/frc-prototype/SKILL.md": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "aba3c9d733d303e68ec8f9b4eb158a8e18b100c30e340663c69ef23ec7104796",
+      "installed_sha256": "aba3c9d733d303e68ec8f9b4eb158a8e18b100c30e340663c69ef23ec7104796",
+      "status": "installed"
+    },
+    ".agents/skills/frc-prototype/agents/openai.yaml": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "4f579a2632ad71971d14fc8ef91281a0546c3cd54ae4e2cfc34b2bc6c56b0178",
+      "installed_sha256": "4f579a2632ad71971d14fc8ef91281a0546c3cd54ae4e2cfc34b2bc6c56b0178",
+      "status": "installed"
+    },
+    ".agents/skills/frc-prototype/references/1466-subsystem-preferences.md": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "fde03c080f196614871f0e29d14dca374ef1cf2ec5337bd402409e5b3c6f1b72",
+      "installed_sha256": "fde03c080f196614871f0e29d14dca374ef1cf2ec5337bd402409e5b3c6f1b72",
+      "status": "installed"
+    },
+    ".agents/skills/frc-experiment/SKILL.md": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "829c4aeb0bb9a76499e52e0070faaed0ee9b5836e1f3d0aa0ff410330b148380",
+      "installed_sha256": "829c4aeb0bb9a76499e52e0070faaed0ee9b5836e1f3d0aa0ff410330b148380",
+      "status": "installed"
+    },
+    ".agents/skills/frc-experiment/agents/openai.yaml": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "6a606d8475e9ae285ceeda75e447e792db4b652f06fbb7a688860636e0a04240",
+      "installed_sha256": "6a606d8475e9ae285ceeda75e447e792db4b652f06fbb7a688860636e0a04240",
+      "status": "installed"
+    },
+    ".agents/skills/frc-change/SKILL.md": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "221e5fd7cdd33b03b7cbc71f3173d2140bfd57da3a58bcccd8454650ea8733f8",
+      "installed_sha256": "221e5fd7cdd33b03b7cbc71f3173d2140bfd57da3a58bcccd8454650ea8733f8",
+      "status": "installed"
+    },
+    ".agents/skills/frc-change/agents/openai.yaml": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "347d5e902311166b7533ccf4e8be754e1ecb86153f43528fe46714cb53b5b705",
+      "installed_sha256": "347d5e902311166b7533ccf4e8be754e1ecb86153f43528fe46714cb53b5b705",
+      "status": "installed"
+    },
+    ".agents/skills/frc-diagnose/SKILL.md": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "c619b838bf268598ca655d765c1a9cc5e130efb256ce76c06bab1f40829d8cf1",
+      "installed_sha256": "c619b838bf268598ca655d765c1a9cc5e130efb256ce76c06bab1f40829d8cf1",
+      "status": "installed"
+    },
+    ".agents/skills/frc-diagnose/agents/openai.yaml": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "b85d48b115032cbc688478163da5a107348a90a979203154f13887f16b43f2a2",
+      "installed_sha256": "b85d48b115032cbc688478163da5a107348a90a979203154f13887f16b43f2a2",
+      "status": "installed"
+    },
+    ".agents/skills/frc-verify/SKILL.md": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "f56b06e30060f04543c7a8c7065ad6ec56a7fa4100bef528b2cd4f673bbb6762",
+      "installed_sha256": "f56b06e30060f04543c7a8c7065ad6ec56a7fa4100bef528b2cd4f673bbb6762",
+      "status": "installed"
+    },
+    ".agents/skills/frc-verify/agents/openai.yaml": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "0c2d747c1c7a9ef3c85b42a083504aaefd18c05a56cea026e57c34a7ee43a098",
+      "installed_sha256": "0c2d747c1c7a9ef3c85b42a083504aaefd18c05a56cea026e57c34a7ee43a098",
+      "status": "installed"
+    },
+    ".agents/skills/frc-integrate/SKILL.md": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "ee3f13b0ea98728420650eef9357cc394c583340d6f92d9cd98f4894d3aace3f",
+      "installed_sha256": "ee3f13b0ea98728420650eef9357cc394c583340d6f92d9cd98f4894d3aace3f",
+      "status": "installed"
+    },
+    ".agents/skills/frc-integrate/agents/openai.yaml": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "10fb6d61efee4ce5dd7d40d22587cad5ab8017d537c64f378e37f0719876b376",
+      "installed_sha256": "10fb6d61efee4ce5dd7d40d22587cad5ab8017d537c64f378e37f0719876b376",
+      "status": "installed"
+    },
+    ".agents/skills/frc-auto/SKILL.md": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "72e929ee84b26986f0c3a36014981198fa024e1f71b6ef318316353566511ba5",
+      "installed_sha256": "72e929ee84b26986f0c3a36014981198fa024e1f71b6ef318316353566511ba5",
+      "status": "installed"
+    },
+    ".agents/skills/frc-auto/agents/openai.yaml": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "bdab98ff6a6a86b76da2c97279b2dcc6072392ae34ed175401069b0ed2f6c9b2",
+      "installed_sha256": "bdab98ff6a6a86b76da2c97279b2dcc6072392ae34ed175401069b0ed2f6c9b2",
+      "status": "installed"
+    },
+    ".agents/skills/frc-performance/SKILL.md": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "756c006291118930cd535a30a2e205943f840621cb41d535c772f5ca209bc89d",
+      "installed_sha256": "756c006291118930cd535a30a2e205943f840621cb41d535c772f5ca209bc89d",
+      "status": "installed"
+    },
+    ".agents/skills/frc-performance/agents/openai.yaml": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "8f3a57fa79e189e527ecee1c1b13f0c9e4b66dec10ae31a9116fe53d81613684",
+      "installed_sha256": "8f3a57fa79e189e527ecee1c1b13f0c9e4b66dec10ae31a9116fe53d81613684",
+      "status": "installed"
+    },
+    "tools/frc/frc.py": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "c66d91a93552159f3b5a9e0019945505f1dc47130ffa4d8910a4b6f28a692127",
+      "installed_sha256": "c66d91a93552159f3b5a9e0019945505f1dc47130ffa4d8910a4b6f28a692127",
+      "status": "installed"
+    },
+    "tools/frc/wpilog.py": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "192f093bc4d440dda20e4a6a3d6b611197770a6014faa3a4432594c6a91991c8",
+      "installed_sha256": "192f093bc4d440dda20e4a6a3d6b611197770a6014faa3a4432594c6a91991c8",
+      "status": "installed"
+    },
+    "docs/tooling.md": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "8d951d1e689188945ee994d0d8e0288df97930c9d9e8fb2d19bc3a8b73017991",
+      "installed_sha256": "8d951d1e689188945ee994d0d8e0288df97930c9d9e8fb2d19bc3a8b73017991",
+      "status": "installed"
+    },
+    "docs/skill-evaluation.md": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "53c919f265296729397f3b3db5979f5c5404fa110daeda771ce3b8e64bbf739f",
+      "installed_sha256": "53c919f265296729397f3b3db5979f5c5404fa110daeda771ce3b8e64bbf739f",
+      "status": "installed"
+    },
+    "docs/robot/examples/hardware.json": {
+      "operation": "copy",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "b0822e3a7ad8515e3ff147248e49311921123242a88f26e90e0c67b02f5df034",
+      "installed_sha256": "b0822e3a7ad8515e3ff147248e49311921123242a88f26e90e0c67b02f5df034",
+      "status": "installed"
+    },
+    "AGENTS.md": {
+      "operation": "merge",
+      "ownership": "project",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "4f1b5e0b0840962e5a7c4832450b2d7f5a1a9734220a195d6fe23397e8e10285",
+      "installed_sha256": "07c324d0a34fe6128cf7c4fa36a4346f2a8e44f711dff074d5e5538a75a38a28",
+      "status": "created"
+    },
+    "frc-toolkit.json": {
+      "operation": "merge",
+      "ownership": "project",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "9b15edd354ec619f69a7a58a244f967851cb31d84b3fdf82bcaa90f0a0563230",
+      "installed_sha256": "624568a6552930343a7020f2feca32a4abd6cf8005a16586362a277c29851adb",
+      "status": "created"
+    },
+    "docs/robot/context.md": {
+      "operation": "create-if-missing",
+      "ownership": "project",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "28199f6c0310f0d7a7ea8d6a02bb124120bf493336d1567e942760ea59e534a6",
+      "installed_sha256": "32a70c831a618b918cb69ba6ef80eb93f99863372a93ed27fa4c88fe742c395a",
+      "status": "created"
+    },
+    ".gitignore": {
+      "operation": "merge",
+      "ownership": "project",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "678ecebe297b7963b782b5481742fc8e520a5945b65c8c3d990e6783be4137c7",
+      "installed_sha256": "aa960fd41663463096203c74db6cd06a5b0b5010095923e481af78b2ba1938a3",
+      "status": "merged"
+    }
+  },
+  "managed_blocks": {
+    "AGENTS.md": {
+      "operation": "managed-block",
+      "ownership": "toolkit",
+      "source_commit": "0cc826d1dd2753a06271daedf08415255b77cfad",
+      "upstream_sha256": "07c324d0a34fe6128cf7c4fa36a4346f2a8e44f711dff074d5e5538a75a38a28",
+      "installed_sha256": "07c324d0a34fe6128cf7c4fa36a4346f2a8e44f711dff074d5e5538a75a38a28",
+      "status": "installed",
+      "begin_marker": "<!-- frc-codex-toolkit:begin -->",
+      "end_marker": "<!-- frc-codex-toolkit:end -->"
+    }
+  },
+  "project_integrations": {
+    "AGENTS.md": {
+      "ownership": "project",
+      "operation": "merge",
+      "status": "created"
+    },
+    "frc-toolkit.json": {
+      "ownership": "project",
+      "operation": "merge",
+      "status": "created"
+    },
+    "docs/robot/context.md": {
+      "ownership": "project",
+      "operation": "create-if-missing",
+      "status": "created"
+    },
+    ".gitignore": {
+      "ownership": "project",
+      "operation": "merge",
+      "status": "merged"
+    }
+  },
+  "validation": {
+    "required_files": "passed",
+    "skill_metadata": "passed",
+    "relative_references": "passed",
+    "instruction_discovery": "Root AGENTS.md routing and local skill metadata verified on disk; no root override",
+    "source_only_exclusion": "passed",
+    "project_configuration": "passed",
+    "helper_execution": "Passed with Python 3.13.13: --help and read-only workspace inspection. Git fingerprint unavailable because the template is outside a Git checkout.",
+    "robot_checks": "Passed: Gradle build and configured robot-build check using WPILib Java 25. The starter has no test sources. Simulation and hardware checks were not run."
+  },
+  "conflicts": []
+}

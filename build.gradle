@@ -1,0 +1,246 @@
+plugins {
+    id "java"
+    id "application"
+    id "org.wpilib.GradleRIO" version "2027.0.0-alpha-8"
+    id "com.diffplug.spotless" version "8.6.0"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+def ROBOT_MAIN_CLASS = "first.Main"
+
+// Define my targets (SystemCore) and artifacts (deployable files)
+// This is added by GradleRIO's backing project DeployUtils.
+deploy {
+    targets {
+        systemcore(getTargetTypeClass('SystemCore')) {
+            // Team number is loaded either from the .wpilib/wpilib_preferences.json
+            // or from command line. If not found an exception will be thrown.
+            // You can use getTeamOrDefault(team) instead of getTeamNumber if you
+            // want to store a team number in this file.
+            team = project.wpilib.getTeamNumber()
+            // Use the default systemcore host name. This must be called after setting team
+            // as happens on the line above
+            useDefaultSystemcoreHostName()
+            debug = project.wpilib.getDebugOrDefault(false)
+
+            artifacts {
+                // First part is artifact name, 2nd is artifact type
+                // getTargetTypeClass is a shortcut to get the class type using a string
+
+                wpilibJava(getArtifactTypeClass('WPILibJavaArtifact')) {
+                    // Set to true to use debug including JNI, which will drastically impact performance.
+                    debugJni = false
+                }
+
+                // Static files artifact
+                wpilibStaticFileDeploy(getArtifactTypeClass('FileTreeArtifact')) {
+                    files = project.fileTree('src/main/deploy')
+                    directory = '/home/systemcore/deploy'
+                    deleteOldFiles = false // Change to true to delete files on systemcore that no
+                                           // longer exist in deploy directory of this project
+                }
+            }
+        }
+    }
+}
+
+def deployArtifact = deploy.targets.systemcore.artifacts.wpilibJava
+
+// Set to true to use debug for simulation including JNI
+wpi.java.runSimWithDebugJni = false
+
+// Set this to true to enable desktop support.
+def includeDesktopSupport = true
+
+tasks.register('replayWatch', JavaExec) {
+    mainClass = 'org.littletonrobotics.junction.ReplayWatch'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+// Defining my dependencies. In this case, WPILib (+ friends), and vendor libraries.
+// Also defines JUnit 5.
+dependencies {
+    annotationProcessor wpi.java.deps.wpilibAnnotations()
+    implementation wpi.java.deps.wpilib()
+    implementation wpi.java.vendor.java()
+    def akit = new groovy.json.JsonSlurper().parse(file('vendordeps/AdvantageKit.json'))
+    annotationProcessor "org.littletonrobotics.akit:akit-autolog:${akit.version}"
+
+    systemcoreDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.systemcore)
+    systemcoreDebug wpi.java.vendor.jniDebug(wpi.platforms.systemcore)
+
+    systemcoreRelease wpi.java.deps.wpilibJniRelease(wpi.platforms.systemcore)
+    systemcoreRelease wpi.java.vendor.jniRelease(wpi.platforms.systemcore)
+
+    nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
+    nativeDebug wpi.java.vendor.jniDebug(wpi.platforms.desktop)
+    simulationDebug wpi.sim.enableDebug()
+
+    nativeRelease wpi.java.deps.wpilibJniRelease(wpi.platforms.desktop)
+    nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
+    simulationRelease wpi.sim.enableRelease()
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
+}
+
+// Simulation configuration (e.g. environment variables).
+wpi.sim.addGui().defaultEnabled = false
+wpi.sim.addDriverstation()
+
+application.mainClass = ROBOT_MAIN_CLASS
+
+deployArtifact.configureApplication(application)
+wpi.java.configureApplication(application)
+wpi.java.configureTestTasks(test)
+
+jar {
+    from('src') { into 'backup/src' }
+    from('vendordeps') { into 'backup/vendordeps' }
+    from('build.gradle') { into 'backup' }
+}
+
+// Configure string concat to always inline compile
+tasks.withType(JavaCompile) {
+    options.compilerArgs.add '-XDstringConcat=inline'
+}
+
+spotless {
+    java {
+        target 'src/**/*.java'
+        googleJavaFormat('1.35.0')
+    }
+}
+
+// These checks use compiled Java without starting the robot or generating deploy metadata.
+def compileRobot = tasks.named('compileJava')
+def robotCheckClasspath = files(compileRobot.flatMap { it.destinationDirectory }) + configurations.runtimeClasspath
+def validateAutos = tasks.register('validateAutos', JavaExec) {
+    group = 'verification'
+    description = 'Validates each BLine path referenced by the autonomous chooser.'
+    dependsOn compileRobot
+    classpath = robotCheckClasspath
+    mainClass = 'first.robot.AutoRoutines'
+    args layout.projectDirectory.dir('src/main/deploy/autos').asFile.absolutePath
+}
+tasks.named('check') {
+    dependsOn validateAutos
+}
+
+def checkConstantsDeploy = tasks.register('checkConstantsDeploy', JavaExec) {
+    group = 'verification'
+    description = 'Checks that the configured robot is ready for a real-drive deploy.'
+    dependsOn compileRobot, validateAutos
+    classpath = robotCheckClasspath
+    mainClass = 'first.robot.Constants$CheckDeploy'
+}
+
+def git = { String... args ->
+    try {
+        def command = providers.exec {
+            workingDir layout.projectDirectory.asFile
+            commandLine(['git'] + args.toList())
+            ignoreExitValue = true
+        }
+        [
+            exit: command.result.get().exitValue,
+            output: command.standardOutput.asText.get().trim(),
+            error: command.standardError.asText.get().trim()
+        ]
+    } catch (GradleException error) {
+        [exit: -1, output: '', error: error.message]
+    }
+}
+
+def isRobotCheckout = {
+    def root = git('rev-parse', '--show-toplevel')
+    root.exit == 0 && new File(root.output).canonicalFile == layout.projectDirectory.asFile.canonicalFile
+}
+
+def eventDeploy = tasks.register('eventDeploy') {
+    description = 'Creates a local snapshot before a deploy on an event-prefixed branch.'
+    onlyIf {
+        gradle.taskGraph.allTasks.any { it.name.startsWith('deploy') }
+    }
+    mustRunAfter checkConstantsDeploy
+    doLast {
+        if (!isRobotCheckout()) {
+            return
+        }
+        def branch = git('branch', '--show-current')
+        if (branch.exit != 0) {
+            throw new GradleException("Could not determine the deploy branch: ${branch.error}")
+        }
+        if (!branch.output.startsWith('event')) {
+            return
+        }
+        def stage = git('add', '-A')
+        if (stage.exit != 0) {
+            throw new GradleException("Could not stage the event snapshot: ${stage.error}")
+        }
+        def staged = git('diff', '--cached', '--quiet')
+        if (staged.exit == 0) {
+            return
+        }
+        if (staged.exit != 1) {
+            throw new GradleException("Could not inspect staged event changes: ${staged.error}")
+        }
+        def commit = git('commit', '-m', "Event deploy ${java.time.Instant.now()}".toString())
+        if (commit.exit != 0) {
+            throw new GradleException("Could not commit the event snapshot: ${commit.error}")
+        }
+        logger.lifecycle("Saved event snapshot on ${branch.output}: ${git('rev-parse', '--short', 'HEAD').output}")
+    }
+}
+
+def metadataFile = layout.buildDirectory.file('generated/buildMetadata/robot-build.properties')
+def generateBuildMetadata = tasks.register('generateBuildMetadata') {
+    dependsOn eventDeploy
+    outputs.file metadataFile
+    outputs.upToDateWhen { false }
+    doLast {
+        def metadata = new Properties()
+        metadata.setProperty('BuildDate', java.time.Instant.now().toString())
+        metadata.setProperty('GitSHA', 'Unknown')
+        metadata.setProperty('GitDate', 'Unknown')
+        metadata.setProperty('GitBranch', 'Unknown')
+        metadata.setProperty('GitDirty', 'Unknown')
+        if (isRobotCheckout()) {
+            [
+                GitSHA: ['rev-parse', '--verify', 'HEAD'],
+                GitDate: ['show', '-s', '--format=%cI', 'HEAD'],
+                GitBranch: ['rev-parse', '--abbrev-ref', 'HEAD']
+            ].each { key, arguments ->
+                def revision = git(*arguments)
+                if (revision.exit == 0 && revision.output) {
+                    metadata.setProperty(key, revision.output)
+                }
+            }
+            def status = git('status', '--porcelain')
+            if (status.exit == 0) {
+                metadata.setProperty('GitDirty', status.output ? 'Uncommitted changes' : 'All changes committed')
+            }
+        }
+        def output = metadataFile.get().asFile
+        output.parentFile.mkdirs()
+        output.withWriter('UTF-8') { metadata.store(it, null) }
+    }
+}
+
+tasks.named('processResources') {
+    from(generateBuildMetadata)
+}
+
+// Gate discovery and artifact tasks, including deployStandalone, before any robot contact.
+tasks.matching { it.name == 'discoversystemcore' || it.name.startsWith('deploy') }.configureEach {
+    dependsOn checkConstantsDeploy, generateBuildMetadata
+}

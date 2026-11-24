@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "project_kind": "robot",
+  "integration_target": null,
+  "coordination": {
+    "provider": "github",
+    "repository": null
+  },
+  "verification": {
+    "robot-build": {
+      "scope": "robot-build",
+      "argv": [
+        "./gradlew",
+        "build"
+      ],
+      "windows_argv": [
+        "cmd.exe",
+        "/d",
+        "/c",
+        "gradlew.bat",
+        "build"
+      ],
+      "cwd": ".",
+      "timeout_seconds": 300
+    }
+  }
+}
