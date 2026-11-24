@@ -3,6 +3,7 @@ package first.robot.auto;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import bline.field.FlippingUtil;
 import first.robot.generated.TunerConstants;
 import first.robot.subsystems.drive.Drive;
 import first.robot.subsystems.drive.GyroIO;
@@ -15,6 +16,7 @@ import org.wpilib.hardware.hal.AllianceStationID;
 import org.wpilib.hardware.hal.HAL;
 import org.wpilib.hardware.hal.RobotMode;
 import org.wpilib.math.geometry.Pose2d;
+import org.wpilib.math.geometry.Rotation2d;
 import org.wpilib.simulation.DriverStationSim;
 import org.wpilib.simulation.SimHooks;
 
@@ -92,18 +94,20 @@ class AutoRoutinesSimTest {
   }
 
   @Test
-  void redAllianceFlipsTheJavaPathOnce() {
+  void redAllianceTransformsTheJavaPathOnce() {
     DriverStationSim.setAllianceStationId(AllianceStationID.RED_1);
     DriverStationSim.notifyNewData();
     try {
       autos.updateInputs();
       String status = runToEnd(AutoRoutine.singlePath("Red", 5, AutoPaths::drive1Meter));
       assertEquals("Completed", status);
-      var field = first.robot.subsystems.vision.VisionConstants.aprilTagLayout;
-      // Blue (3, 4, 0 deg) rotated about the field center.
-      assertEquals(field.getFieldLength() - 3.0, drive.getPose().getX(), 0.08);
-      assertEquals(field.getFieldWidth() - 4.0, drive.getPose().getY(), 0.08);
-      assertEquals(180, Math.abs(drive.getPose().getRotation().getDegrees()), 3);
+      // Blue end pose (3, 4, 0 deg), transformed with the field's configured symmetry.
+      Pose2d expected = FlippingUtil.flipFieldPose(new Pose2d(3, 4, Rotation2d.ZERO));
+      Pose2d actual = drive.getPose();
+      assertEquals(expected.getX(), actual.getX(), 0.08);
+      assertEquals(expected.getY(), actual.getY(), 0.08);
+      assertEquals(
+          0, actual.getRotation().minus(expected.getRotation()).getDegrees(), 3, "heading");
     } finally {
       DriverStationSim.setAllianceStationId(AllianceStationID.BLUE_1);
       DriverStationSim.notifyNewData();
