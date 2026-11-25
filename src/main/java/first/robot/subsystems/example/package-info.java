@@ -15,6 +15,12 @@
  *       for disconnect and overtemperature, reports a goal that is not reached in time through
  *       {@link first.robot.util.GoalTimeout}, and logs goal error, setpoint-vs-measured tracking
  *       error, time on goal, and current under {@code Diagnostics/ExamplePivot/}.
+ *   <li>{@link first.robot.subsystems.example.ExampleRollers} shows game piece detection from motor
+ *       current: a piece jams the rollers, so current stays high while speed drops. It ignores the
+ *       spin-up window, confirms the stall for a short time, and clears the piece after ejecting.
+ *       Detection reads only logged inputs, so it replays. {@link
+ *       first.robot.subsystems.example.ExampleRollersIOSim} jams the rollers when a simulated piece
+ *       is present and limits stall current like a stator current limit.
  * </ul>
  *
  * <p>Tracking error (profiled setpoint minus measured) shows how well the controller follows the
