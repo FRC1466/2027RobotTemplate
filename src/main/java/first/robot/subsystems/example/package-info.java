@@ -21,6 +21,10 @@
  * profile. A large tracking error during a move points at gains or feedforward. Goal error (final
  * goal minus measured) is large during every move and only means something once the profile ends.
  *
+ * <p>Requests reach the mechanism through the Choreographer, which only accepts them from the
+ * source that owns the current state. See {@link first.robot.subsystems.Choreographer} for how to
+ * add a source-checked request for a mechanism.
+ *
  * <p>Checking "at position" from a coordinator: compare against the goal that was just requested,
  * with {@link first.robot.subsystems.example.ExamplePivot#isNear(double)}, not against {@code
  * atGoal()}. A coordinator usually passes its requested goal to the mechanism later in the loop, so
