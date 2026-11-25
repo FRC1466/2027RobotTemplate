@@ -270,7 +270,8 @@ public final class AutoRoutines {
                           autosDirectory,
                           () -> pathFinished,
                           () -> pathFinished = false,
-                          () -> inputs.redAlliance);
+                          () -> inputs.redAlliance,
+                          drive::setAutoStartPose);
                   context[0] = auto;
                   try {
                     routine.body().run(auto);

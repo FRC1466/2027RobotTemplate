@@ -34,6 +34,11 @@ class AutoRoutinesSimTest {
   private static AutoRoutines autos;
   private static final Scheduler scheduler = Scheduler.getDefault();
 
+  /** Largest odometry change between two loops while {@link #trackJumps} is set. */
+  private static double largestJumpMeters;
+
+  private static boolean trackJumps;
+
   @BeforeAll
   static void setUp() {
     assertTrue(HAL.initialize());
@@ -57,12 +62,20 @@ class AutoRoutinesSimTest {
   private static String runToEnd(AutoRoutine routine) {
     Command command = autos.run(routine);
     assertTrue(scheduler.schedule(command).successful(), routine.name());
+    largestJumpMeters = 0;
+    trackJumps = false;
     for (int loop = 0; loop < 50 * 30 && scheduler.isScheduledOrRunning(command); loop++) {
+      Pose2d before = drive.getPose();
+      boolean tracking = trackJumps;
       drive.periodic();
       // Applies the BLine gains. "false" keeps the chooser from starting its own routine.
       autos.periodic(false);
       scheduler.run();
       drive.periodicAfterScheduler();
+      if (tracking) {
+        double jump = drive.getPose().getTranslation().getDistance(before.getTranslation());
+        largestJumpMeters = Math.max(largestJumpMeters, jump);
+      }
       SimHooks.stepTiming(0.02);
     }
     assertTrue(!scheduler.isScheduledOrRunning(command), routine.name() + " never ended");
@@ -162,6 +175,74 @@ class AutoRoutinesSimTest {
           symmetry + " heading");
     } finally {
       FlippingUtil.symmetryType = original;
+      DriverStationSim.setAllianceStationId(AllianceStationID.BLUE_1);
+      DriverStationSim.notifyNewData();
+      autos.updateInputs();
+    }
+  }
+
+  /**
+   * startAt places the robot without driving, and the next path drives from there instead of
+   * resetting to its own authored start.
+   */
+  @Test
+  void startAtResetsPoseOnceWithoutDriving() {
+    Pose2d[] afterStart = new Pose2d[1];
+    Pose2d[] afterWait = new Pose2d[1];
+    String status =
+        runToEnd(
+            new AutoRoutine(
+                "Start At",
+                8,
+                auto -> {
+                  if (!auto.startAt(AutoPaths.drive1Meter())) return;
+                  afterStart[0] = drive.getPose();
+                  trackJumps = true;
+                  auto.waitSeconds(0.5);
+                  afterWait[0] = drive.getPose();
+                  // Authored 0.6 m away from where startAt put the robot. Resetting to it would
+                  // show up as a jump in odometry.
+                  auto.follow(
+                      new Path(
+                          new Waypoint(2.0, 4.6, Rotation2d.ZERO),
+                          new Waypoint(3.0, 4.0, Rotation2d.ZERO)));
+                }));
+    assertEquals("Completed", status);
+    assertEquals(2.0, afterStart[0].getX(), 1e-6);
+    assertEquals(4.0, afterStart[0].getY(), 1e-6);
+    assertEquals(
+        0, afterWait[0].getTranslation().getDistance(afterStart[0].getTranslation()), 0.01);
+    assertTrue(largestJumpMeters < 0.15, "odometry jumped " + largestJumpMeters + " m");
+    assertEquals(3.0, drive.getPose().getX(), 0.08);
+    assertEquals(4.0, drive.getPose().getY(), 0.08);
+  }
+
+  @Test
+  void startAtFlipsForRed() {
+    DriverStationSim.setAllianceStationId(AllianceStationID.RED_1);
+    DriverStationSim.notifyNewData();
+    try {
+      autos.updateInputs();
+      Pose2d[] afterStart = new Pose2d[1];
+      Pose2d authored = new Pose2d(2.0, 1.5, Rotation2d.fromDegrees(30));
+      String status =
+          runToEnd(
+              new AutoRoutine(
+                  "Red Start At",
+                  2,
+                  auto -> {
+                    auto.startAt(
+                        new Path(
+                            new Waypoint(authored.getX(), authored.getY(), authored.getRotation()),
+                            new Waypoint(3.0, 1.5, authored.getRotation())));
+                    afterStart[0] = drive.getPose();
+                  }));
+      assertEquals("Completed", status);
+      Pose2d expected = FlippingUtil.flipFieldPose(authored);
+      assertEquals(expected.getX(), afterStart[0].getX(), 1e-6);
+      assertEquals(expected.getY(), afterStart[0].getY(), 1e-6);
+      assertEquals(0, afterStart[0].getRotation().minus(expected.getRotation()).getDegrees(), 1e-6);
+    } finally {
       DriverStationSim.setAllianceStationId(AllianceStationID.BLUE_1);
       DriverStationSim.notifyNewData();
       autos.updateInputs();

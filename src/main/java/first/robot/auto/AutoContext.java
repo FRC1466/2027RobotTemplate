@@ -7,9 +7,11 @@ import bline.field.FlippingUtil;
 import bline.path.Path;
 import java.io.File;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import org.littletonrobotics.junction.Logger;
 import org.wpilib.command3.Command;
 import org.wpilib.command3.Coroutine;
+import org.wpilib.math.geometry.Pose2d;
 
 /**
  * The tools a routine body uses while it runs. Each step returns {@code false} after recording a
@@ -21,9 +23,9 @@ import org.wpilib.command3.Coroutine;
  * auto.follow(AutoPaths.backToScore());
  * }</pre>
  *
- * <p>The first path a routine follows resets odometry to its authored start (flipped for red).
- * Later paths start from the measured pose, so their first element should be where the previous
- * path ended.
+ * <p>The first path a routine follows resets odometry to its authored start (flipped for red),
+ * unless the routine already called {@link #startAt}. Later paths start from the measured pose, so
+ * their first element should be where the previous path ended.
  */
 public final class AutoContext {
   private final Coroutine co;
@@ -32,6 +34,8 @@ public final class AutoContext {
   private final BooleanSupplier pathFinished;
   private final Runnable clearPathFinished;
   private final BooleanSupplier redAlliance;
+  private final Consumer<Pose2d> resetPose;
+  private boolean poseReset;
   private int segment;
   private String failure;
 
@@ -41,13 +45,38 @@ public final class AutoContext {
       File autosDirectory,
       BooleanSupplier pathFinished,
       Runnable clearPathFinished,
-      BooleanSupplier redAlliance) {
+      BooleanSupplier redAlliance,
+      Consumer<Pose2d> resetPose) {
     this.co = co;
     this.follower = follower;
     this.autosDirectory = autosDirectory;
     this.pathFinished = pathFinished;
     this.clearPathFinished = clearPathFinished;
     this.redAlliance = redAlliance;
+    this.resetPose = resetPose;
+  }
+
+  /**
+   * Resets odometry to a path's authored start (flipped for red) without driving. Use it when the
+   * routine acts before its first path, such as scoring a preload, so that work happens at the real
+   * starting pose. The next {@link #follow} then starts from the measured pose instead of resetting
+   * again.
+   *
+   * @return false, with a fault recorded, if the path has no authored start
+   */
+  public boolean startAt(Path path) {
+    if (failure != null) {
+      return false;
+    }
+    var start = path.getAuthoredStartPose();
+    if (start.isEmpty()) {
+      return fail("startAt needs a path that begins with a waypoint");
+    }
+    var pose = redAlliance.getAsBoolean() ? FlippingUtil.flipFieldPose(start.get()) : start.get();
+    resetPose.accept(pose);
+    poseReset = true;
+    Logger.recordOutput("Auto/StartPose", pose);
+    return true;
   }
 
   /**
@@ -95,10 +124,11 @@ public final class AutoContext {
     if (!path.isValid()) {
       return fail("Invalid path: " + label);
     }
-    boolean first = segment == 1;
+    boolean first = !poseReset;
     if (first && path.getAuthoredStartPose().isEmpty()) {
       return fail("The first path must start with a waypoint: " + label);
     }
+    poseReset = true;
 
     Logger.recordOutput("Auto/Segment", label);
     // BLine's alliance flip always rotates the path 180 degrees about the field center. On a
