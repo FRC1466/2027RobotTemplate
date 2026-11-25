@@ -64,6 +64,10 @@ Set `TUNING_MODE` in [Constants.java](src/main/java/first/robot/Constants.java) 
 
 AdvantageScope shows the active commands under `Commands/Active`, loop phase durations under `LoggedTracer`, Choreographer goals and states, and drivetrain stator current under `Diagnostics/Drive`. The current total sums the logged motor measurements. The Driver Station alert reports low battery voltage after two seconds disabled.
 
+## Adding a mechanism
+
+[subsystems/example](src/main/java/first/robot/subsystems/example) is a starter for a closed-loop position mechanism, shown as a two-motor pivot with simulation IO. Copy and rename it, then replace its placeholder constants. It shows the IO split, an alert per motor for disconnect and overtemperature, a [`GoalTimeout`](src/main/java/first/robot/util/GoalTimeout.java) alert for a goal not reached in time, and setpoint-vs-measured tracking error under `Diagnostics/<Mechanism>/`. When a coordinator checks whether a mechanism reached a newly requested position, compare against that request with `isNear(goal)`, not `atGoal()`. Right after a request, `atGoal()` still checks last loop's goal, so a wait on it would pass instantly. The [package documentation](src/main/java/first/robot/subsystems/example/package-info.java) explains the pattern. `RobotContainer` does not construct the example.
+
 ## Vision
 
 The [AdvantageKit vision template](https://docs.advantagekit.org/getting-started/template-projects/vision-template/) supplies camera IO, logged pose observations, ambiguity and field-boundary filtering, and distance-weighted estimator measurements. Desktop simulation uses one virtual PhotonVision camera driven by wheel-only simulated pose. Real camera entries start empty. Add each Luma P1's PhotonVision camera name and measured robot-to-camera transform in [VisionConstants.java](src/main/java/first/robot/subsystems/vision/VisionConstants.java). Match the coprocessor's PhotonVision build and field layout to the project. Review accepted and rejected samples under `Vision/Summary`.
