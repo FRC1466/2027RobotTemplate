@@ -190,3 +190,4 @@ compile_commands.json
 # FRC toolkit transient output
 .frc/
 tools/frc/__pycache__/
+tools/cad/__pycache__/
