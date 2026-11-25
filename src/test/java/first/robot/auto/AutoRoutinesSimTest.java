@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bline.field.FlippingUtil;
 import bline.path.Path;
+import bline.path.Path.PathConstraints;
+import bline.path.Path.TranslationTarget;
 import bline.path.Path.Waypoint;
 import first.robot.generated.TunerConstants;
 import first.robot.subsystems.drive.Drive;
@@ -39,6 +41,9 @@ class AutoRoutinesSimTest {
 
   private static boolean trackJumps;
 
+  /** Largest x reached during the last run. */
+  private static double maxX;
+
   @BeforeAll
   static void setUp() {
     assertTrue(HAL.initialize());
@@ -63,6 +68,7 @@ class AutoRoutinesSimTest {
     Command command = autos.run(routine);
     assertTrue(scheduler.schedule(command).successful(), routine.name());
     largestJumpMeters = 0;
+    maxX = Double.NEGATIVE_INFINITY;
     trackJumps = false;
     for (int loop = 0; loop < 50 * 30 && scheduler.isScheduledOrRunning(command); loop++) {
       Pose2d before = drive.getPose();
@@ -72,6 +78,7 @@ class AutoRoutinesSimTest {
       autos.periodic(false);
       scheduler.run();
       drive.periodicAfterScheduler();
+      maxX = Math.max(maxX, drive.getPose().getX());
       if (tracking) {
         double jump = drive.getPose().getTranslation().getDistance(before.getTranslation());
         largestJumpMeters = Math.max(largestJumpMeters, jump);
@@ -247,6 +254,46 @@ class AutoRoutinesSimTest {
       DriverStationSim.notifyNewData();
       autos.updateInputs();
     }
+  }
+
+  /** Fast square corner: east 3 m, then north. Fast enough to stop at the end at kP 2. */
+  private static Path squareCorner() {
+    return new Path(
+        new PathConstraints().setMaxVelocityMetersPerSec(3.0).setMaxAccelerationMetersPerSec2(4.5),
+        new Waypoint(2.0, 2.0, Rotation2d.ZERO),
+        new TranslationTarget(5.0, 2.0),
+        new Waypoint(5.0, 5.0, Rotation2d.ZERO));
+  }
+
+  /** BLine does not slow for corners by itself; PathCorners caps the speed into them. */
+  @Test
+  void cornerLimitReducesOvershoot() {
+    assertEquals("Completed", runToEnd(AutoRoutine.singlePath("Corner", 8, () -> squareCorner())));
+    double uncapped = maxX - 5.0;
+    assertEquals(
+        "Completed",
+        runToEnd(
+            AutoRoutine.singlePath("Capped Corner", 8, () -> PathCorners.limit(squareCorner()))));
+    double capped = maxX - 5.0;
+    System.out.printf(
+        "Corner overshoot past x = 5: %.3f m uncapped, %.3f m capped%n", uncapped, capped);
+    assertTrue(capped < uncapped / 2, "capped " + capped + " vs uncapped " + uncapped);
+    assertEquals(5.0, drive.getPose().getX(), 0.08);
+    assertEquals(5.0, drive.getPose().getY(), 0.08);
+
+    // A path on the config.json defaults keeps them where no corner limit applies.
+    assertEquals(
+        "Completed",
+        runToEnd(
+            AutoRoutine.singlePath(
+                "Capped Default Corner",
+                12,
+                () ->
+                    PathCorners.limit(
+                        new Path(
+                            new Waypoint(2.0, 2.0, Rotation2d.ZERO),
+                            new TranslationTarget(3.0, 2.0),
+                            new Waypoint(3.0, 3.0, Rotation2d.ZERO))))));
   }
 
   @Test

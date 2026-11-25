@@ -39,6 +39,8 @@ import org.wpilib.math.geometry.Rotation2d;
  *   <li>A nonzero {@code setMinVelocityMetersPerSec} that covers a path's last element makes BLine
  *       pass through the end at that speed instead of stopping, a rolling handoff into the next
  *       path. Leave it unset on any path that should stop.
+ *   <li>BLine slows only for the final stop, not for corners between points. Wrap a fast path with
+ *       a sharp corner in {@link PathCorners#limit} to cap the speed into that corner.
  * </ul>
  */
 public final class AutoPaths {
