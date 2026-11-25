@@ -3,6 +3,7 @@ package first.robot.auto;
 import static org.wpilib.units.Units.Seconds;
 
 import bline.commands.FollowPath;
+import bline.field.FlippingUtil;
 import bline.path.Path;
 import java.io.File;
 import java.util.function.BooleanSupplier;
@@ -30,6 +31,7 @@ public final class AutoContext {
   private final File autosDirectory;
   private final BooleanSupplier pathFinished;
   private final Runnable clearPathFinished;
+  private final BooleanSupplier redAlliance;
   private int segment;
   private String failure;
 
@@ -38,12 +40,14 @@ public final class AutoContext {
       FollowPath.Builder follower,
       File autosDirectory,
       BooleanSupplier pathFinished,
-      Runnable clearPathFinished) {
+      Runnable clearPathFinished,
+      BooleanSupplier redAlliance) {
     this.co = co;
     this.follower = follower;
     this.autosDirectory = autosDirectory;
     this.pathFinished = pathFinished;
     this.clearPathFinished = clearPathFinished;
+    this.redAlliance = redAlliance;
   }
 
   /**
@@ -97,7 +101,10 @@ public final class AutoContext {
     }
 
     Logger.recordOutput("Auto/Segment", label);
-    FollowPath built = follower.build(path);
+    // BLine's alliance flip always rotates the path 180 degrees about the field center. On a
+    // mirrored field (such as 2023), red is a reflection across the center line instead, which is
+    // that rotation plus BLine's width mirror: (x, y, theta) -> (length - x, y, pi - theta).
+    FollowPath built = follower.build(path).withShouldMirror(this::mirrorForRed);
     FollowPath command = first ? built.withPoseReset() : built;
     Command segmentCommand =
         Double.isFinite(timeoutSeconds) ? command.withTimeout(Seconds.of(timeoutSeconds)) : command;
@@ -110,6 +117,11 @@ public final class AutoContext {
       return fail("Path did not reach its endpoint: " + label);
     }
     return true;
+  }
+
+  private boolean mirrorForRed() {
+    return redAlliance.getAsBoolean()
+        && FlippingUtil.symmetryType == FlippingUtil.FieldSymmetry.kMirrored;
   }
 
   /** Pauses the routine. The drivetrain receives no path output while waiting. */

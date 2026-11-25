@@ -269,7 +269,8 @@ public final class AutoRoutines {
                           follower,
                           autosDirectory,
                           () -> pathFinished,
-                          () -> pathFinished = false);
+                          () -> pathFinished = false,
+                          () -> inputs.redAlliance);
                   context[0] = auto;
                   try {
                     routine.body().run(auto);

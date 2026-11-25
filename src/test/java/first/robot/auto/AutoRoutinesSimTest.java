@@ -4,12 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bline.field.FlippingUtil;
+import bline.path.Path;
+import bline.path.Path.Waypoint;
 import first.robot.generated.TunerConstants;
 import first.robot.subsystems.drive.Drive;
 import first.robot.subsystems.drive.GyroIO;
 import first.robot.subsystems.drive.ModuleIOSim;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.wpilib.command3.Command;
 import org.wpilib.command3.Scheduler;
 import org.wpilib.hardware.hal.AllianceStationID;
@@ -109,6 +113,55 @@ class AutoRoutinesSimTest {
       assertEquals(
           0, actual.getRotation().minus(expected.getRotation()).getDegrees(), 3, "heading");
     } finally {
+      DriverStationSim.setAllianceStationId(AllianceStationID.BLUE_1);
+      DriverStationSim.notifyNewData();
+      autos.updateInputs();
+    }
+  }
+
+  /**
+   * A path far from both center lines with a diagonal heading, where rotational and mirrored flips
+   * disagree in y and heading. A path along the field's center line cannot tell them apart.
+   */
+  @ParameterizedTest
+  @EnumSource(FlippingUtil.FieldSymmetry.class)
+  void redAllianceUsesTheConfiguredFieldSymmetry(FlippingUtil.FieldSymmetry symmetry) {
+    var original = FlippingUtil.symmetryType;
+    FlippingUtil.symmetryType = symmetry;
+    DriverStationSim.setAllianceStationId(AllianceStationID.RED_1);
+    DriverStationSim.notifyNewData();
+    try {
+      autos.updateInputs();
+      Rotation2d heading = Rotation2d.fromDegrees(30);
+      String status =
+          runToEnd(
+              AutoRoutine.singlePath(
+                  "Red Off Center",
+                  8,
+                  () ->
+                      new Path(new Waypoint(2.0, 1.5, heading), new Waypoint(3.5, 2.0, heading))));
+      assertEquals("Completed", status, symmetry.name());
+
+      // Written out instead of calling FlippingUtil, so the test does not share the code under
+      // test.
+      double length = FlippingUtil.fieldSizeX;
+      double width = FlippingUtil.fieldSizeY;
+      Pose2d expected =
+          switch (symmetry) {
+            case kRotational ->
+                new Pose2d(length - 3.5, width - 2.0, heading.plus(Rotation2d.k180deg));
+            case kMirrored -> new Pose2d(length - 3.5, 2.0, Rotation2d.k180deg.minus(heading));
+          };
+      Pose2d actual = drive.getPose();
+      assertEquals(expected.getX(), actual.getX(), 0.08, symmetry + " x");
+      assertEquals(expected.getY(), actual.getY(), 0.08, symmetry + " y");
+      assertEquals(
+          0,
+          actual.getRotation().minus(expected.getRotation()).getDegrees(),
+          3,
+          symmetry + " heading");
+    } finally {
+      FlippingUtil.symmetryType = original;
       DriverStationSim.setAllianceStationId(AllianceStationID.BLUE_1);
       DriverStationSim.notifyNewData();
       autos.updateInputs();
