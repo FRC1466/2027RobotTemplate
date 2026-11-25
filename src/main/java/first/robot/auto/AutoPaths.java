@@ -26,6 +26,20 @@ import org.wpilib.math.geometry.Rotation2d;
  *   <li>{@link EventTrigger} - run a registered event partway along the current segment. See {@link
  *       Autos#registerEvents}.
  * </ul>
+ *
+ * <p>Tuning a path's speed:
+ *
+ * <ul>
+ *   <li>BLine commands speed = translation kP x remaining distance, then limits acceleration. The
+ *       robot stops at the end without overshoot only if max velocity {@literal <=} 2 x max
+ *       acceleration / kP, with kP from {@code BLine/TranslationKp} in {@link AutoRoutines}. The
+ *       {@code config.json} defaults meet this: 0.8 m/s {@literal <=} 2 x 1.0 / 2 = 1.0 m/s. Change
+ *       velocity, acceleration, and kP together, and recheck each path that sets its own
+ *       constraints.
+ *   <li>A nonzero {@code setMinVelocityMetersPerSec} that covers a path's last element makes BLine
+ *       pass through the end at that speed instead of stopping, a rolling handoff into the next
+ *       path. Leave it unset on any path that should stop.
+ * </ul>
  */
 public final class AutoPaths {
   private AutoPaths() {}

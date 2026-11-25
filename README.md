@@ -58,7 +58,7 @@ Path events (`EventTrigger` in Java, `event_trigger` in drawn paths) run actions
 
 `validateAutos` checks every `AutoPaths` method and every drawn file during the build, and it requires each drawn path to start with a waypoint. `AutoRoutinesSimTest` runs every chooser routine against the simulated swerve, including a red-alliance flip. That shows the steps happen in the right order. It does not show how the real robot drives on carpet. The starter routines and vision use the 2026 welded practice-field layout. Update the layout, alliance symmetry, and authored starts together for a different field.
 
-Set `TUNING_MODE` in [Constants.java](src/main/java/first/robot/Constants.java) during tuning. AdvantageScope can edit the three BLine P gains under `/Tuning/BLine`. AdvantageKit records the edits and reports effective gains under `Auto/Tuning`. Use the same tuning-mode setting when replaying a run.
+Set `TUNING_MODE` in [Constants.java](src/main/java/first/robot/Constants.java) during tuning. AdvantageScope can edit the three BLine P gains under `/Tuning/BLine`. AdvantageKit records the edits and reports effective gains under `Auto/Tuning`. BLine drives at translation kP × remaining distance and then limits acceleration, so a path stops without overshoot only if its max velocity is at most 2 × max acceleration / kP. Change these together. A nonzero minimum velocity on a path's last element makes BLine pass through the end instead of stopping. [AutoPaths.java](src/main/java/first/robot/auto/AutoPaths.java) has the details. Use the same tuning-mode setting when replaying a run.
 
 ## Practice diagnostics
 

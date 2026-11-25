@@ -134,6 +134,7 @@ public final class AutoRoutines {
       new LoggedNetworkChooser<>("Auto Routine");
   private final Scheduler scheduler = Scheduler.getDefault();
   private final AutoInputsAutoLogged inputs = new AutoInputsAutoLogged();
+  // Raising this lowers the fastest speed a path can stop from without overshoot. See AutoPaths.
   private final LoggedTunableNumber translationKp =
       new LoggedTunableNumber("BLine/TranslationKp", 2);
   private final LoggedTunableNumber rotationKp = new LoggedTunableNumber("BLine/RotationKp", 3);
